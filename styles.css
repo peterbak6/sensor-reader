@@ -3,7 +3,7 @@
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
-  background: #08111f;
+  background: #000000;
   color: #eef5ff;
 }
 
@@ -20,10 +20,7 @@ body,
 
 body {
   min-height: 100svh;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(45, 212, 191, 0.18), transparent 32rem),
-    radial-gradient(circle at 95% 12%, rgba(251, 191, 36, 0.12), transparent 26rem),
-    linear-gradient(145deg, #08111f 0%, #111827 58%, #121212 100%);
+  background: #000000;
 }
 
 button,
@@ -34,6 +31,11 @@ summary {
 
 .app {
   min-height: 100svh;
+  background: #000000;
+  padding: 0 max(18px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+}
+
+.permission-app {
   padding:
     max(18px, env(safe-area-inset-top))
     max(18px, env(safe-area-inset-right))
@@ -50,17 +52,13 @@ summary {
 .permission-button {
   display: grid;
   place-items: center;
-  width: min(62vw, 280px);
+  width: min(56vw, 290px);
   aspect-ratio: 1;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 0;
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 42% 28%, rgba(255, 255, 255, 0.28), transparent 22%),
-    linear-gradient(150deg, #2dd4bf 0%, #16a34a 48%, #f59e0b 100%);
-  color: #031018;
-  box-shadow:
-    0 34px 90px rgba(0, 0, 0, 0.45),
-    inset 0 -18px 34px rgba(6, 24, 18, 0.22);
+  background: #ffffff;
+  color: #dc0b13;
+  box-shadow: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
@@ -72,10 +70,8 @@ summary {
 
 .permission-button:active {
   transform: scale(0.97);
-  filter: saturate(1.08);
-  box-shadow:
-    0 22px 54px rgba(0, 0, 0, 0.42),
-    inset 0 -14px 28px rgba(6, 24, 18, 0.25);
+  filter: brightness(0.94);
+  box-shadow: none;
 }
 
 .permission-button:disabled {
@@ -84,16 +80,57 @@ summary {
 }
 
 .pin-icon {
-  width: 38%;
-  height: 38%;
-  filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.18));
+  width: 48%;
+  height: 48%;
+  filter: none;
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: calc(80px + env(safe-area-inset-top));
+  margin: 0 calc(-1 * max(18px, env(safe-area-inset-right))) 0 calc(-1 * max(18px, env(safe-area-inset-left)));
+  padding: calc(18px + env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 16px max(18px, env(safe-area-inset-left));
+  background: #000000;
+}
+
+.app-title {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(1.55rem, 7.4vw, 2rem);
+  font-weight: 760;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.menu-button {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #ffffff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-icon {
+  width: 40px;
+  height: 40px;
 }
 
 .data-view {
   display: grid;
   gap: 14px;
   align-content: start;
-  min-height: calc(100svh - 36px);
+  min-height: calc(100svh - 80px);
+  padding-bottom: 18px;
 }
 
 .top-bar {
@@ -122,6 +159,111 @@ summary {
   color: #dbeafe;
   font-size: 0.76rem;
   overflow-wrap: anywhere;
+}
+
+.inline-status {
+  justify-self: end;
+  margin-top: -8px;
+}
+
+.settings-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  min-height: 100svh;
+  padding:
+    calc(98px + env(safe-area-inset-top))
+    max(18px, env(safe-area-inset-right))
+    max(18px, env(safe-area-inset-bottom))
+    max(18px, env(safe-area-inset-left));
+  background: #000000;
+}
+
+.settings-box {
+  display: grid;
+  gap: 24px;
+  min-height: calc(100svh - 132px - env(safe-area-inset-top));
+  align-content: start;
+  padding: 22px;
+  border: 2px solid #ffffff;
+  background: #000000;
+  color: #ffffff;
+}
+
+.settings-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settings-title-row h2,
+.settings-subtitle {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.7rem;
+  font-weight: 760;
+  letter-spacing: 0;
+}
+
+.settings-title-row span {
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+.permission-list {
+  display: grid;
+  gap: 4px;
+  max-width: 430px;
+}
+
+.permission-row {
+  display: grid;
+  grid-template-columns: minmax(112px, 1fr) minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 10px;
+  min-height: 28px;
+  color: #ffffff;
+  font-size: 1.28rem;
+  line-height: 1.1;
+}
+
+.permission-row strong {
+  min-width: 0;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 720;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.status-dot {
+  width: 20px;
+  height: 20px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.status-dot.good {
+  background: #b9f6a4;
+  color: #7bc466;
+}
+
+.status-dot.warn {
+  background: #ffe68a;
+  color: #e2bd3a;
+}
+
+.status-dot.bad {
+  background: #ffb1ac;
+  color: #ff7c75;
+}
+
+.refresh-label {
+  margin: -8px 0 0;
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 720;
 }
 
 .summary-grid {
@@ -161,10 +303,10 @@ summary {
 .control-panel {
   display: grid;
   gap: 10px;
-  padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .control-top {
@@ -175,21 +317,21 @@ summary {
 }
 
 .control-top label {
-  color: #e0f2fe;
-  font-size: 0.86rem;
+  color: #ffffff;
+  font-size: 1rem;
   font-weight: 720;
 }
 
 .control-top strong {
-  color: #b9f6d2;
-  font-size: 0.78rem;
+  color: #ffffff;
+  font-size: 0.9rem;
   font-weight: 720;
   text-align: right;
 }
 
 .noise-slider {
   width: 100%;
-  accent-color: #2dd4bf;
+  accent-color: #ffffff;
 }
 
 .control-meta {
@@ -225,7 +367,7 @@ summary {
   display: grid;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
+  border-radius: 0;
   background: rgba(2, 6, 23, 0.58);
 }
 
@@ -334,6 +476,12 @@ summary {
   .app {
     display: grid;
     place-items: center;
+  }
+
+  .app-header,
+  .settings-panel {
+    width: min(720px, 100%);
+    margin-inline: auto;
   }
 
   .permission-screen,

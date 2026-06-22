@@ -317,6 +317,17 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./sensor-noise-reduction.js";
     return String(value);
   }
 
+  function getPermissionTone(value) {
+    if (value === "granted" || value === "not-required") return "good";
+    if (value === "idle" || value === "prompt") return "warn";
+    return "bad";
+  }
+
+  function getRefreshLabel(profile) {
+    const fps = Math.max(1, Math.round(1000 / profile.displayUpdateMs));
+    return `${fps}fps / ${profile.displayUpdateMs}ms`;
+  }
+
   function PinIcon() {
     return React.createElement(
       "svg",
@@ -338,6 +349,51 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./sensor-noise-reduction.js";
         opacity: "0.86",
       }),
     );
+  }
+
+  function MenuIcon() {
+    return React.createElement(
+      "svg",
+      {
+        className: "menu-icon",
+        viewBox: "0 0 24 24",
+        fill: "none",
+        "aria-hidden": "true",
+      },
+      React.createElement("path", {
+        d: "M4 6h16M4 12h16M4 18h16",
+        stroke: "currentColor",
+        strokeWidth: "2.4",
+        strokeLinecap: "square",
+      }),
+    );
+  }
+
+  function AppHeader({ settingsOpen, onToggleSettings }) {
+    return React.createElement(
+      "header",
+      { className: "app-header" },
+      React.createElement("h1", { className: "app-title" }, "My Sensor Reader"),
+      React.createElement(
+        "button",
+        {
+          className: "menu-button",
+          type: "button",
+          onClick: onToggleSettings,
+          "aria-label": settingsOpen ? "Close settings" : "Open settings",
+          "aria-expanded": settingsOpen,
+        },
+        React.createElement(MenuIcon),
+      ),
+    );
+  }
+
+  function StatusDot({ value }) {
+    return React.createElement("span", {
+      className: `status-dot ${getPermissionTone(value)}`,
+      title: value,
+      "aria-label": value,
+    });
   }
 
   function SensorTable({ title, rows }) {
@@ -392,8 +448,69 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./sensor-noise-reduction.js";
         "div",
         { className: "control-meta" },
         React.createElement("span", null, "Responsive"),
-        React.createElement("span", null, `${profile.displayUpdateMs}ms refresh`),
+        React.createElement("span", null, getRefreshLabel(profile)),
         React.createElement("span", null, "Stable"),
+      ),
+    );
+  }
+
+  function SettingsPanel({
+    open,
+    permissions,
+    noiseReduction,
+    noiseProfile,
+    onNoiseChange,
+  }) {
+    if (!open) return null;
+
+    return React.createElement(
+      "section",
+      { className: "settings-panel", "aria-label": "Settings" },
+      React.createElement(
+        "div",
+        { className: "settings-box" },
+        React.createElement(
+          "div",
+          { className: "settings-title-row" },
+          React.createElement("h2", null, "Settings"),
+          React.createElement("span", null, "Collapse"),
+        ),
+        React.createElement(
+          "div",
+          { className: "permission-list" },
+          React.createElement(
+            "div",
+            { className: "permission-row" },
+            React.createElement("span", null, "Motion:"),
+            React.createElement("strong", null, permissions.motion),
+            React.createElement(StatusDot, { value: permissions.motion }),
+          ),
+          React.createElement(
+            "div",
+            { className: "permission-row" },
+            React.createElement("span", null, "Orientation:"),
+            React.createElement("strong", null, permissions.orientation),
+            React.createElement(StatusDot, { value: permissions.orientation }),
+          ),
+          React.createElement(
+            "div",
+            { className: "permission-row" },
+            React.createElement("span", null, "Location:"),
+            React.createElement("strong", null, permissions.geolocation),
+            React.createElement(StatusDot, { value: permissions.geolocation }),
+          ),
+        ),
+        React.createElement("h2", { className: "settings-subtitle" }, "Settings"),
+        React.createElement(
+          "p",
+          { className: "refresh-label" },
+          `Refresh rate: ${getRefreshLabel(noiseProfile)}`,
+        ),
+        React.createElement(NoiseControl, {
+          value: noiseReduction,
+          profile: noiseProfile,
+          onChange: onNoiseChange,
+        }),
       ),
     );
   }
@@ -404,6 +521,7 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./sensor-noise-reduction.js";
     const [status, setStatus] = useState("Tap to enable");
     const [errors, setErrors] = useState([]);
     const [noiseReduction, setNoiseReduction] = useState(DEFAULT_NOISE_REDUCTION);
+    const [settingsOpen, setSettingsOpen] = useState(false);
     const [reading, setReading] = useState(initialReading);
     const watchIdRef = useRef(null);
     const listenersRef = useRef([]);
@@ -698,7 +816,7 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./sensor-noise-reduction.js";
     if (!enabled) {
       return React.createElement(
         "main",
-        { className: "app" },
+        { className: "app permission-app" },
         React.createElement(
           "section",
           { className: "permission-screen" },
@@ -720,15 +838,20 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./sensor-noise-reduction.js";
     return React.createElement(
       "main",
       { className: "app" },
+      React.createElement(AppHeader, {
+        settingsOpen,
+        onToggleSettings: () => setSettingsOpen((current) => !current),
+      }),
+      React.createElement(SettingsPanel, {
+        open: settingsOpen,
+        permissions: reading.permissions,
+        noiseReduction,
+        noiseProfile,
+        onNoiseChange: updateNoiseReduction,
+      }),
       React.createElement(
         "section",
         { className: "data-view" },
-        React.createElement(
-          "div",
-          { className: "top-bar" },
-          React.createElement("h1", { className: "title" }, "Sensor Reader"),
-          React.createElement("span", { className: "status" }, status),
-        ),
         errors.length > 0 &&
           React.createElement(
             "div",
@@ -769,11 +892,6 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./sensor-noise-reduction.js";
             ),
           ),
         ),
-        React.createElement(NoiseControl, {
-          value: noiseReduction,
-          profile: noiseProfile,
-          onChange: updateNoiseReduction,
-        }),
         React.createElement(SensorTable, {
           title: "Acceleration m/s²",
           rows: tables.acceleration,
