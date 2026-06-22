@@ -10,7 +10,7 @@
     },
     "accelerationIncludingGravity": {
       "enabled": true,
-      "tauMs": 122,
+      "tauMs": 300,
       "deadband": 0,
       "_note": "m/s^2, gravity included. Equivalent to your old alpha=0.12 at 60Hz. No deadband - this feeds tilt/gravity estimation later, where you want the true slow-moving signal, not a clipped one."
     },
@@ -25,18 +25,18 @@
   "orientation": {
     "beta": {
       "enabled": true,
-      "tauMs": 88,
+      "tauMs": 180,
       "deadband": 0,
       "_note": "front-back tilt, degrees, range -180..180. Equivalent to your old alpha=0.16 at 60Hz. Plain (non-circular) EMA - fine in practice, but note beta technically wraps at +/-180."
     },
     "gamma": {
       "enabled": true,
-      "tauMs": 88,
+      "tauMs": 180,
       "deadband": 0,
       "_note": "left-right tilt, degrees, range -90..90 (no wraparound). Same tau as beta for consistency."
     },
     "alpha": {
-      "enabled": false,
+      "enabled": true,
       "tauMs": 150,
       "_note": "raw compass-ish yaw, degrees, range 0..360 - wraps just like compassHeading below. Disabled by default: if you turn this on, it MUST use circular smoothing (already wired up in the module), not a plain EMA like beta/gamma, or you'll get a 180 degree glitch near North."
     },
