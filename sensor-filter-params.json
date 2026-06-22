@@ -1,0 +1,56 @@
+{
+  "_README": "Tuning file for sensor-noise-reduction.js. tauMs is a smoothing time constant in milliseconds (bigger = smoother but more lag). It replaces a fixed EMA 'alpha' so behaviour stays consistent even if the sensor's real sample rate drifts (60Hz on a good day, 20-30Hz under battery saver / background throttling). 'enabled: false' does NOT remove the attribute from the smoothed output - it just skips the filter math and passes the raw value straight through, which is the main battery-saving lever in this file.",
+
+  "motion": {
+    "acceleration": {
+      "enabled": true,
+      "tauMs": 50,
+      "deadband": 0.04,
+      "_note": "linear (gravity-removed) acceleration, m/s^2. Equivalent to your old alpha=0.25 at 60Hz. Soft deadband kills sensor noise floor without biasing real slow motion to zero."
+    },
+    "accelerationIncludingGravity": {
+      "enabled": true,
+      "tauMs": 122,
+      "deadband": 0,
+      "_note": "m/s^2, gravity included. Equivalent to your old alpha=0.12 at 60Hz. No deadband - this feeds tilt/gravity estimation later, where you want the true slow-moving signal, not a clipped one."
+    },
+    "rotationRate": {
+      "enabled": true,
+      "tauMs": 39,
+      "deadband": 0.75,
+      "_note": "deg/s (gyroscope-like). Equivalent to your old alpha=0.3 at 60Hz. Deadband suppresses gyro bias noise when the phone is still."
+    }
+  },
+
+  "orientation": {
+    "beta": {
+      "enabled": true,
+      "tauMs": 88,
+      "deadband": 0,
+      "_note": "front-back tilt, degrees, range -180..180. Equivalent to your old alpha=0.16 at 60Hz. Plain (non-circular) EMA - fine in practice, but note beta technically wraps at +/-180."
+    },
+    "gamma": {
+      "enabled": true,
+      "tauMs": 88,
+      "deadband": 0,
+      "_note": "left-right tilt, degrees, range -90..90 (no wraparound). Same tau as beta for consistency."
+    },
+    "alpha": {
+      "enabled": false,
+      "tauMs": 150,
+      "_note": "raw compass-ish yaw, degrees, range 0..360 - wraps just like compassHeading below. Disabled by default: if you turn this on, it MUST use circular smoothing (already wired up in the module), not a plain EMA like beta/gamma, or you'll get a 180 degree glitch near North."
+    },
+    "compassHeading": {
+      "enabled": true,
+      "tauMs": 150,
+      "compassAccuracyTrustLimitDeg": 35,
+      "_note": "webkitCompassHeading, degrees, range 0..360. Circular EMA, equivalent to your old alpha=0.1 at 60Hz. Samples with webkitCompassAccuracy >= compassAccuracyTrustLimitDeg are ignored (iOS only - Android doesn't report an accuracy figure, so all samples are trusted there)."
+    }
+  },
+
+  "performance": {
+    "minMotionSampleIntervalMs": 0,
+    "minOrientationSampleIntervalMs": 0,
+    "_note": "Optional throttle: drop incoming samples that arrive faster than this, before any filter math runs, to cut CPU/GC work on top of whatever the OS sample rate already is. 0 = process every sample. The bigger battery costs are usually sensor ACQUISITION settings (geolocation enableHighAccuracy/frequency, keeping devicemotion/deviceorientation listeners attached) rather than this module's own math - this knob only controls the filtering layer."
+  }
+}
