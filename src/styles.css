@@ -186,6 +186,18 @@ button {
   font-size: 12px;
 }
 
+.summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.summary-action-button {
+  width: 30px;
+  height: 30px;
+}
+
 .summary-item strong {
   min-width: 0;
   color: var(--text);
@@ -783,6 +795,51 @@ button {
   margin: 0;
   color: rgba(255, 255, 255, 0.72);
   font-size: 14px;
+}
+
+.map-body {
+  gap: 14px;
+  padding-top: 20px;
+}
+
+.map-readout {
+  justify-self: stretch;
+  margin: 0;
+  padding: 0 2px;
+  color: rgb(255, 255, 255);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  text-align: center;
+}
+
+.map-widget {
+  position: relative;
+  width: 100%;
+  min-height: min(68svh, 560px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background: #05080c;
+}
+
+.map-widget .maplibregl-canvas {
+  outline: none;
+}
+
+.map-widget .maplibregl-marker svg {
+  filter: drop-shadow(0 5px 12px rgba(0, 0, 0, 0.5));
+}
+
+.map-error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 18px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13px;
+  text-align: center;
 }
 
 @media (min-width: 720px) {

@@ -3,10 +3,11 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./lib/sensor-noise-reduction.js"
 import {
   CompassActionIcon,
   LevelActionIcon,
+  MapActionIcon,
   MenuIcon,
   PinIcon,
 } from "./components/Icons.jsx";
-import { CompassView, LevelView } from "./components/InstrumentViews.jsx";
+import { CompassView, LevelView, MapView } from "./components/InstrumentViews.jsx";
 import SettingsModal from "./components/SettingsModal.jsx";
 import SensorTable from "./components/SensorTable.jsx";
 import {
@@ -589,6 +590,15 @@ export default function App() {
     );
   }
 
+  if (activeInstrument === "map") {
+    return (
+      <MapView
+        location={reading.location}
+        onClose={() => setActiveInstrument(null)}
+      />
+    );
+  }
+
   return (
     <main className="app">
       <header className="app-header">
@@ -644,8 +654,19 @@ export default function App() {
             <span>Orientation</span>
             <strong>{reading.orientation.eventCount}</strong>
           </div>
-          <div className="summary-item wide">
-            <span>GPS</span>
+          <div className="summary-item wide gps-summary">
+            <div className="summary-header">
+              <span>GPS</span>
+              <button
+                className="table-action-button summary-action-button"
+                type="button"
+                onClick={() => setActiveInstrument("map")}
+                aria-label="Open map"
+                title="Open map"
+              >
+                <MapActionIcon />
+              </button>
+            </div>
             <strong>
               {reading.location.latitude == null
                 ? reading.permissions.geolocation

@@ -58,3 +58,17 @@ export function LevelActionIcon() {
     </svg>
   );
 }
+
+export function MapActionIcon() {
+  return (
+    <svg className="action-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M6.5 4.5 11 2.8l6.5 2.7v14l-4.5-1.8-6.5 2.8-4.5-2v-14l4.5 2Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <path d="M6.5 6.5v14M13 4.2v13.5" stroke="currentColor" strokeWidth="1.7" />
+    </svg>
+  );
+}

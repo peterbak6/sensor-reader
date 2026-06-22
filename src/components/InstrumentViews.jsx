@@ -1,5 +1,31 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { formatValue, round } from "../lib/sensor-utils.js";
+
+const MAPLIBRE_VERSION = "4.7.1";
+const MAPLIBRE_SCRIPT_ID = "maplibre-gl-script";
+const MAPLIBRE_STYLE_ID = "maplibre-gl-style";
+const FALLBACK_COORDS = [35.093, 32.661];
+const DARK_MAP_STYLE = {
+  version: 8,
+  sources: {
+    cartoLight: {
+      type: "raster",
+      tiles: [
+        "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+      ],
+    },
+  },
+  layers: [
+    {
+      id: "cartoDark",
+      type: "raster",
+      source: "cartoLight",
+      paint: {
+        "raster-opacity": 1,
+      },
+    },
+  ],
+};
 
 function normalizeDegrees(value) {
   if (typeof value !== "number" || Number.isNaN(value)) return null;
@@ -26,6 +52,48 @@ function getLevelState(beta, gamma) {
   if (betaLevel && gammaLevel) return "exact";
   if (betaLevel || gammaLevel) return "partial";
   return "off";
+}
+
+function locationToLngLat(location) {
+  if (
+    typeof location?.latitude === "number" &&
+    typeof location?.longitude === "number"
+  ) {
+    return [location.longitude, location.latitude];
+  }
+  return FALLBACK_COORDS;
+}
+
+function loadMapLibre() {
+  if (window.maplibregl) return Promise.resolve(window.maplibregl);
+
+  return new Promise((resolve, reject) => {
+    let link = document.getElementById(MAPLIBRE_STYLE_ID);
+    if (!link) {
+      link = document.createElement("link");
+      link.id = MAPLIBRE_STYLE_ID;
+      link.rel = "stylesheet";
+      link.href = `https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.css`;
+      document.head.appendChild(link);
+    }
+
+    let script = document.getElementById(MAPLIBRE_SCRIPT_ID);
+    if (!script) {
+      script = document.createElement("script");
+      script.id = MAPLIBRE_SCRIPT_ID;
+      script.src = `https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.js`;
+      script.async = true;
+      script.onload = () => resolve(window.maplibregl);
+      script.onerror = () => reject(new Error("MapLibre failed to load"));
+      document.head.appendChild(script);
+      return;
+    }
+
+    script.addEventListener("load", () => resolve(window.maplibregl), { once: true });
+    script.addEventListener("error", () => reject(new Error("MapLibre failed to load")), {
+      once: true,
+    });
+  });
 }
 
 function TickMarks() {
@@ -126,6 +194,81 @@ export function LevelView({ orientation, onClose }) {
           />
         </div>
         <p className="level-tilt">{`${formatValue(tilt, 1)}° tilt`}</p>
+      </section>
+    </main>
+  );
+}
+
+export function MapView({ location, onClose }) {
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
+  const [mapError, setMapError] = useState(null);
+  const lngLat = locationToLngLat(location);
+  const hasLocation =
+    typeof location?.latitude === "number" &&
+    typeof location?.longitude === "number";
+
+  useEffect(() => {
+    let cancelled = false;
+
+    loadMapLibre()
+      .then((maplibregl) => {
+        if (cancelled || !containerRef.current || mapRef.current) return;
+
+        mapRef.current = new maplibregl.Map({
+          container: containerRef.current,
+          style: DARK_MAP_STYLE,
+          center: lngLat,
+          zoom: hasLocation ? 15 : 12,
+          attributionControl: false,
+        });
+
+        markerRef.current = new maplibregl.Marker({ color: "#e50914" })
+          .setLngLat(lngLat)
+          .addTo(mapRef.current);
+      })
+      .catch((error) => {
+        if (!cancelled) setMapError(error.message);
+      });
+
+    return () => {
+      cancelled = true;
+      markerRef.current?.remove();
+      markerRef.current = null;
+      mapRef.current?.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mapRef.current || !markerRef.current) return;
+    markerRef.current.setLngLat(lngLat);
+    mapRef.current.easeTo({ center: lngLat, duration: 300 });
+  }, [lngLat[0], lngLat[1]]);
+
+  return (
+    <main className="instrument-screen">
+      <header className="instrument-header">
+        <h1>My Sensor Reader</h1>
+        <button
+          className="instrument-close-button"
+          type="button"
+          onClick={onClose}
+          aria-label="Close map"
+        >
+          X
+        </button>
+      </header>
+      <section className="instrument-body map-body" aria-label="GPS map">
+        <p className="map-readout">
+          {hasLocation
+            ? `${formatValue(location.latitude, 6)}, ${formatValue(location.longitude, 6)}`
+            : "35.093000, 32.661000"}
+        </p>
+        <div className="map-widget" ref={containerRef}>
+          {mapError && <p className="map-error">{mapError}</p>}
+        </div>
       </section>
     </main>
   );
