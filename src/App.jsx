@@ -624,15 +624,34 @@ export default function App() {
             <strong>
               {reading.location.latitude == null
                 ? reading.permissions.geolocation
-                : `${reading.location.latitude}, ${reading.location.longitude}`}
+                : `Lat-Lon: ${reading.location.latitude}, ${reading.location.longitude} (±${reading.location.accuracy}m)`}
+            </strong>
+            <strong>
+              {reading.location.altitude != null && `Altitude: ${reading.location.altitude}m (±${reading.location.altitudeAccuracy}m)`}
             </strong>
           </div>
         </div>
 
-        <SensorTable title="Acceleration m/s²" rows={tables.acceleration} digits={displayDigits} />
-        <SensorTable title="Acceleration + Gravity m/s²" rows={tables.gravity} digits={displayDigits} />
-        <SensorTable title="Rotation Rate °/s" rows={tables.rotation} digits={displayDigits} />
-        <SensorTable title="Orientation °" rows={tables.orientation} digits={displayDigits} />
+        <SensorTable
+          title="Acceleration m/s²"
+          rows={tables.acceleration}
+          digits={displayDigits}
+        />
+        <SensorTable
+          title="Acceleration + Gravity m/s²"
+          rows={tables.gravity}
+          digits={displayDigits}
+        />
+        <SensorTable
+          title="Rotation Rate °/s"
+          rows={tables.rotation}
+          digits={displayDigits}
+        />
+        <SensorTable
+          title="Orientation °"
+          rows={tables.orientation}
+          digits={displayDigits}
+        />
 
         <details className="debug-details">
           <summary>Debug JSON</summary>
