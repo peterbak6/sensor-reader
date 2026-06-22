@@ -3,10 +3,10 @@ export function round(value, digits = 4) {
   return Number(value.toFixed(digits));
 }
 
-export function formatValue(value) {
+export function formatValue(value, digits = 3) {
   if (value === null || value === undefined) return "null";
   if (typeof value === "boolean") return value ? "true" : "false";
-  if (typeof value === "number") return String(round(value));
+  if (typeof value === "number") return String(round(value, digits));
   return String(value);
 }
 
@@ -92,8 +92,20 @@ export function getRefreshLabel(profile) {
   return `${fps}fps / ${profile.displayUpdateMs}ms`;
 }
 
-export function buildFilterParamsForNoiseReduction(baseParams, level) {
+export function getDisplayRefreshLabel(fps) {
+  const displayFps = Math.max(1, Number(fps));
+  return `${displayFps}fps / ${Math.round(1000 / displayFps)}ms`;
+}
+
+export function getProcessingIntervalMs(mode) {
+  if (mode === "balanced") return 33;
+  if (mode === "saver") return 100;
+  return 0;
+}
+
+export function buildFilterParamsForNoiseReduction(baseParams, level, processingMode = "native") {
   const profile = getNoiseProfile(level);
+  const sampleInterval = getProcessingIntervalMs(processingMode);
   return {
     motion: {
       acceleration: scaleChannel(
@@ -124,6 +136,8 @@ export function buildFilterParamsForNoiseReduction(baseParams, level) {
     },
     performance: {
       ...(baseParams.performance ?? {}),
+      minMotionSampleIntervalMs: sampleInterval,
+      minOrientationSampleIntervalMs: sampleInterval,
     },
   };
 }

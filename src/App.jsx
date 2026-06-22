@@ -9,6 +9,7 @@ import {
   getFieldState,
   getHeadingSource,
   getNoiseProfile,
+  getProcessingIntervalMs,
   initialReadingFor,
   motionRawFromEvent,
   orientationRawFromEvent,
@@ -19,6 +20,9 @@ import {
 } from "./lib/sensor-utils.js";
 
 const DEFAULT_NOISE_REDUCTION = 55;
+const DEFAULT_DISPLAY_FPS = 4;
+const DEFAULT_DISPLAY_DIGITS = 3;
+const DEFAULT_PROCESSING_MODE = "native";
 
 export default function App() {
   const [started, setStarted] = useState(false);
@@ -28,6 +32,9 @@ export default function App() {
   const [status, setStatus] = useState("Starting");
   const [errors, setErrors] = useState([]);
   const [noiseReduction, setNoiseReduction] = useState(DEFAULT_NOISE_REDUCTION);
+  const [displayFps, setDisplayFps] = useState(DEFAULT_DISPLAY_FPS);
+  const [displayDigits, setDisplayDigits] = useState(DEFAULT_DISPLAY_DIGITS);
+  const [processingMode, setProcessingMode] = useState(DEFAULT_PROCESSING_MODE);
   const [wakeLock, setWakeLock] = useState({
     supported: "wakeLock" in navigator,
     active: false,
@@ -52,7 +59,7 @@ export default function App() {
     motion: 0,
     orientation: 0,
     eventCounts: { motion: 0, orientation: 0 },
-    updateMs: getNoiseProfile(DEFAULT_NOISE_REDUCTION).displayUpdateMs,
+    updateMs: Math.round(1000 / DEFAULT_DISPLAY_FPS),
   });
 
   const noiseProfile = useMemo(
@@ -131,7 +138,7 @@ export default function App() {
         if (cancelled) return;
         setFilterParams(params);
         smootherRef.current.setParams(
-          buildFilterParamsForNoiseReduction(params, noiseReduction),
+          buildFilterParamsForNoiseReduction(params, noiseReduction, processingMode),
         );
         setReading((current) => ({
           ...current,
@@ -181,15 +188,46 @@ export default function App() {
 
   function updateNoiseReduction(level) {
     const nextLevel = Math.min(100, Math.max(0, Number(level)));
-    const profile = getNoiseProfile(nextLevel);
-    const nextParams = buildFilterParamsForNoiseReduction(filterParams, nextLevel);
+    const nextParams = buildFilterParamsForNoiseReduction(
+      filterParams,
+      nextLevel,
+      processingMode,
+    );
 
     setNoiseReduction(nextLevel);
-    displayRef.current.updateMs = profile.displayUpdateMs;
     smootherRef.current.setParams(nextParams);
     setReading((current) => ({
       ...current,
       filter: buildNoiseReductionSettings(filterParams, nextLevel),
+      timestamp: new Date().toISOString(),
+    }));
+  }
+
+  function updateDisplayFps(fps) {
+    const nextFps = Math.max(1, Number(fps));
+    setDisplayFps(nextFps);
+    displayRef.current.updateMs = Math.round(1000 / nextFps);
+  }
+
+  function updateDisplayDigits(digits) {
+    setDisplayDigits(Math.max(1, Math.min(4, Number(digits))));
+  }
+
+  function updateProcessingMode(mode) {
+    setProcessingMode(mode);
+    const nextParams = buildFilterParamsForNoiseReduction(
+      filterParams,
+      noiseReduction,
+      mode,
+    );
+    smootherRef.current.setParams(nextParams);
+    setReading((current) => ({
+      ...current,
+      filter: buildNoiseReductionSettings(filterParams, noiseReduction),
+      performance: {
+        processingMode: mode,
+        minSampleIntervalMs: getProcessingIntervalMs(mode),
+      },
       timestamp: new Date().toISOString(),
     }));
   }
@@ -495,8 +533,14 @@ export default function App() {
         wakeLock={wakeLock}
         noiseReduction={noiseReduction}
         noiseProfile={noiseProfile}
+        displayFps={displayFps}
+        displayDigits={displayDigits}
+        processingMode={processingMode}
         status={status}
         onNoiseChange={updateNoiseReduction}
+        onDisplayFpsChange={updateDisplayFps}
+        onDisplayDigitsChange={updateDisplayDigits}
+        onProcessingModeChange={updateProcessingMode}
         onToggleWakeLock={toggleWakeLock}
         onClose={() => setSettingsOpen(false)}
       />
@@ -531,10 +575,10 @@ export default function App() {
           </div>
         </div>
 
-        <SensorTable title="Acceleration m/s²" rows={tables.acceleration} />
-        <SensorTable title="Acceleration + Gravity m/s²" rows={tables.gravity} />
-        <SensorTable title="Rotation Rate °/s" rows={tables.rotation} />
-        <SensorTable title="Orientation °" rows={tables.orientation} />
+        <SensorTable title="Acceleration m/s²" rows={tables.acceleration} digits={displayDigits} />
+        <SensorTable title="Acceleration + Gravity m/s²" rows={tables.gravity} digits={displayDigits} />
+        <SensorTable title="Rotation Rate °/s" rows={tables.rotation} digits={displayDigits} />
+        <SensorTable title="Orientation °" rows={tables.orientation} digits={displayDigits} />
 
         <details className="debug-details">
           <summary>Debug JSON</summary>

@@ -1,5 +1,9 @@
 import React from "react";
-import { getPermissionTone, getRefreshLabel } from "../lib/sensor-utils.js";
+import {
+  getDisplayRefreshLabel,
+  getPermissionTone,
+  getProcessingIntervalMs,
+} from "../lib/sensor-utils.js";
 
 function StatusDot({ value }) {
   return (
@@ -40,10 +44,21 @@ function NoiseControl({ value, profile, onChange }) {
       />
       <div className="control-meta">
         <span>Responsive</span>
-        <span>{getRefreshLabel(profile)}</span>
+        <span>{`tau x${profile.tauScale}`}</span>
         <span>Stable</span>
       </div>
     </section>
+  );
+}
+
+function SelectControl({ id, label, value, onChange, children }) {
+  return (
+    <label className="select-control" htmlFor={id}>
+      <span>{label}</span>
+      <select id={id} value={value} onChange={(event) => onChange(event.target.value)}>
+        {children}
+      </select>
+    </label>
   );
 }
 
@@ -53,8 +68,14 @@ export default function SettingsModal({
   wakeLock,
   noiseReduction,
   noiseProfile,
+  displayFps,
+  displayDigits,
+  processingMode,
   status,
   onNoiseChange,
+  onDisplayFpsChange,
+  onDisplayDigitsChange,
+  onProcessingModeChange,
   onToggleWakeLock,
   onClose,
 }) {
@@ -97,13 +118,54 @@ export default function SettingsModal({
 
         <h2 className="settings-subtitle">Refresh</h2>
         <p className="refresh-label">
-          {`Refresh rate: ${getRefreshLabel(noiseProfile)}`}
+          {`Screen refresh: ${getDisplayRefreshLabel(displayFps)}`}
         </p>
+        <div className="settings-grid">
+          <SelectControl
+            id="displayFps"
+            label="Display"
+            value={String(displayFps)}
+            onChange={(value) => onDisplayFpsChange(Number(value))}
+          >
+            <option value="1">1 fps</option>
+            <option value="2">2 fps</option>
+            <option value="4">4 fps</option>
+            <option value="8">8 fps</option>
+            <option value="16">16 fps</option>
+          </SelectControl>
+          <SelectControl
+            id="displayDigits"
+            label="Decimals"
+            value={String(displayDigits)}
+            onChange={(value) => onDisplayDigitsChange(Number(value))}
+          >
+            <option value="1">1 digit</option>
+            <option value="2">2 digits</option>
+            <option value="3">3 digits</option>
+            <option value="4">4 digits</option>
+          </SelectControl>
+        </div>
         <NoiseControl
           value={noiseReduction}
           profile={noiseProfile}
           onChange={onNoiseChange}
         />
+        <h2 className="settings-subtitle">Battery</h2>
+        <SelectControl
+          id="processingMode"
+          label="Sensor processing"
+          value={processingMode}
+          onChange={onProcessingModeChange}
+        >
+          <option value="native">Native event rate</option>
+          <option value="balanced">Balanced, 30 Hz max</option>
+          <option value="saver">Saver, 10 Hz max</option>
+        </SelectControl>
+        <p className="settings-note">
+          {processingMode === "native"
+            ? "Sensors feed the smoother at the browser event rate. The screen only samples the latest values."
+            : `Sensor samples faster than ${getProcessingIntervalMs(processingMode)}ms are skipped before smoothing.`}
+        </p>
       </section>
     </div>
   );

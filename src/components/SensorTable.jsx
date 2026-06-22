@@ -1,7 +1,7 @@
 import React from "react";
 import { formatValue } from "../lib/sensor-utils.js";
 
-export default function SensorTable({ title, rows }) {
+export default function SensorTable({ title, rows, digits }) {
   return (
     <section className="sensor-section">
       <h2 className="section-title">{title}</h2>
@@ -17,10 +17,10 @@ export default function SensorTable({ title, rows }) {
               {row.label}
             </div>
             <div className="value" role="cell">
-              {formatValue(row.raw)}
+              {formatValue(row.raw, digits)}
             </div>
             <div className="value smooth" role="cell">
-              {formatValue(row.smoothed)}
+              {formatValue(row.smoothed, digits)}
             </div>
           </div>
         ))}
