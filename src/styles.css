@@ -80,8 +80,8 @@ summary {
 }
 
 .pin-icon {
-  width: 77%;
-  height: 77%;
+  width: 48%;
+  height: 48%;
   filter: none;
 }
 
@@ -166,38 +166,36 @@ summary {
   margin-top: -8px;
 }
 
-.settings-panel {
+.settings-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 15;
+  z-index: 30;
+  display: grid;
+  place-items: start center;
   min-height: 100svh;
   padding:
-    calc(98px + env(safe-area-inset-top))
+    calc(22px + env(safe-area-inset-top))
     max(18px, env(safe-area-inset-right))
     max(18px, env(safe-area-inset-bottom))
     max(18px, env(safe-area-inset-left));
-  background: #000000;
+  background: rgba(0, 0, 0, 0.82);
 }
 
-.settings-box {
+.settings-modal {
+  position: relative;
   display: grid;
-  gap: 24px;
-  min-height: calc(100svh - 132px - env(safe-area-inset-top));
+  gap: 20px;
+  width: min(100%, 560px);
+  max-height: calc(100svh - 44px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   align-content: start;
+  overflow: auto;
   padding: 22px;
   border: 2px solid #ffffff;
   background: #000000;
   color: #ffffff;
 }
 
-.settings-title-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.settings-title-row h2,
+.settings-modal h2,
 .settings-subtitle {
   margin: 0;
   color: #ffffff;
@@ -206,9 +204,27 @@ summary {
   letter-spacing: 0;
 }
 
-.settings-title-row span {
+.modal-close-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: #ffffff;
-  font-size: 1rem;
+  font-size: 1.35rem;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.modal-status {
+  margin: -12px 0 0;
+  color: #a8c7d8;
+  font-size: 0.9rem;
 }
 
 .permission-list {
@@ -257,6 +273,29 @@ summary {
 .status-dot.bad {
   background: #ffb1ac;
   color: #ff7c75;
+}
+
+.wake-lock-button {
+  min-height: 46px;
+  border: 2px solid #ffffff;
+  border-radius: 0;
+  background: #000000;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 760;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wake-lock-button.active {
+  background: #ffffff;
+  color: #000000;
+}
+
+.wake-lock-button:disabled {
+  border-color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.45);
+  cursor: not-allowed;
 }
 
 .refresh-label {
