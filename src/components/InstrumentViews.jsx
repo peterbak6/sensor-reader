@@ -81,8 +81,6 @@ export function CompassView({ orientation, onClose }) {
             <span className="cardinal west">W</span>
           </div>
           <span className="compass-pointer" />
-          <span className="compass-cross vertical" />
-          <span className="compass-cross horizontal" />
           <span className="compass-center" />
         </div>
       </section>
@@ -114,9 +112,9 @@ export function LevelView({ orientation, onClose }) {
       </header>
       <section className="instrument-body level-body" aria-label="Level">
         <div className="level-readouts">
-          <span>{`Alpha: ${formatValue(alpha, 1)}°`}</span>
-          <span>{`Beta: ${formatValue(beta, 1)}°`}</span>
-          <span>{`Gamma: ${formatValue(gamma, 1)}°`}</span>
+          <span>{`α ${formatValue(alpha, 1)}°`}</span>
+          <span>{`β ${formatValue(beta, 1)}°`}</span>
+          <span>{`γ ${formatValue(gamma, 1)}°`}</span>
         </div>
         <div className="level-widget">
           <span className="level-line diagonal-a" />

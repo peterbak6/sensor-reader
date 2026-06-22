@@ -687,28 +687,13 @@ button {
 
 .compass-pointer {
   position: absolute;
-  left: -8px;
-  top: calc(50% - 7px);
+  left: calc(50% - 7px);
+  top: -8px;
   width: 0;
   height: 0;
-  border-top: 7px solid transparent;
-  border-bottom: 7px solid transparent;
-  border-right: 12px solid #ff111b;
-}
-
-.compass-cross {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.compass-cross.vertical {
-  width: 1px;
-  height: 150px;
-}
-
-.compass-cross.horizontal {
-  width: 150px;
-  height: 1px;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 12px solid #ff111b;
 }
 
 .compass-center {
@@ -726,12 +711,19 @@ button {
 .level-readouts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 8px;
   width: min(100%, 420px);
   color: #fff;
-  font-size: clamp(15px, 4.6vw, 19px);
+  font-size: clamp(14px, 4vw, 18px);
   font-weight: 700;
   text-align: center;
+}
+
+.level-readouts span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .level-widget {
