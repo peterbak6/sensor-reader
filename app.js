@@ -4,6 +4,7 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./sensor-noise-reduction.js";
   const { useMemo, useRef, useState } = React;
 
   const filterParams = await loadFilterParams();
+  const DEFAULT_NOISE_REDUCTION = 55;
 
   const initialReading = {
     timestamp: null,
@@ -62,7 +63,7 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./sensor-noise-reduction.js";
       heading: null,
       timestamp: null,
     },
-    filter: summarizeFilterParams(filterParams),
+    filter: buildNoiseReductionSettings(filterParams, DEFAULT_NOISE_REDUCTION),
     support: {
       deviceMotion: "DeviceMotionEvent" in window,
       deviceOrientation: "DeviceOrientationEvent" in window,
@@ -116,6 +117,90 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./sensor-noise-reduction.js";
       deadband: channel.deadband ?? null,
       compassAccuracyTrustLimitDeg:
         channel.compassAccuracyTrustLimitDeg ?? null,
+    };
+  }
+
+  function scaleChannel(channel, tauScale, deadbandScale) {
+    if (!channel) return channel;
+    return {
+      ...channel,
+      tauMs:
+        typeof channel.tauMs === "number"
+          ? Math.round(channel.tauMs * tauScale)
+          : channel.tauMs,
+      deadband:
+        typeof channel.deadband === "number"
+          ? round(channel.deadband * deadbandScale, 4)
+          : channel.deadband,
+    };
+  }
+
+  function getNoiseProfile(level) {
+    const amount = Math.min(100, Math.max(0, Number(level))) / 100;
+    const tauScale =
+      amount <= 0.35 ? 0.35 + (amount / 0.35) * 0.65 : 1 + ((amount - 0.35) / 0.65) * 5;
+    const deadbandScale =
+      amount <= 0.35 ? 0.5 + (amount / 0.35) * 0.5 : 1 + ((amount - 0.35) / 0.65) * 3;
+    const displayUpdateMs = Math.round(70 + amount * 330);
+
+    return {
+      level: Math.round(amount * 100),
+      label:
+        amount < 0.25
+          ? "Responsive"
+          : amount < 0.58
+            ? "Balanced"
+            : amount < 0.82
+              ? "Stable"
+              : "Very stable",
+      tauScale: round(tauScale, 2),
+      deadbandScale: round(deadbandScale, 2),
+      displayUpdateMs,
+    };
+  }
+
+  function buildFilterParamsForNoiseReduction(baseParams, level) {
+    const profile = getNoiseProfile(level);
+    return {
+      motion: {
+        acceleration: scaleChannel(
+          baseParams.motion?.acceleration,
+          profile.tauScale,
+          profile.deadbandScale,
+        ),
+        accelerationIncludingGravity: scaleChannel(
+          baseParams.motion?.accelerationIncludingGravity,
+          profile.tauScale,
+          1,
+        ),
+        rotationRate: scaleChannel(
+          baseParams.motion?.rotationRate,
+          profile.tauScale,
+          profile.deadbandScale,
+        ),
+      },
+      orientation: {
+        beta: scaleChannel(baseParams.orientation?.beta, profile.tauScale, 1),
+        gamma: scaleChannel(baseParams.orientation?.gamma, profile.tauScale, 1),
+        alpha: scaleChannel(baseParams.orientation?.alpha, profile.tauScale, 1),
+        compassHeading: scaleChannel(
+          baseParams.orientation?.compassHeading,
+          profile.tauScale,
+          1,
+        ),
+      },
+      performance: {
+        ...(baseParams.performance ?? {}),
+      },
+    };
+  }
+
+  function buildNoiseReductionSettings(baseParams, level) {
+    const profile = getNoiseProfile(level);
+    const params = buildFilterParamsForNoiseReduction(baseParams, level);
+    return {
+      noiseReduction: profile,
+      params: summarizeFilterParams(params),
     };
   }
 
@@ -283,15 +368,64 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./sensor-noise-reduction.js";
     );
   }
 
+  function NoiseControl({ value, profile, onChange }) {
+    return React.createElement(
+      "section",
+      { className: "control-panel", "aria-label": "Noise reduction control" },
+      React.createElement(
+        "div",
+        { className: "control-top" },
+        React.createElement("label", { htmlFor: "noiseReduction" }, "Noise reduction"),
+        React.createElement("strong", null, `${profile.label} ${profile.level}%`),
+      ),
+      React.createElement("input", {
+        id: "noiseReduction",
+        className: "noise-slider",
+        type: "range",
+        min: "0",
+        max: "100",
+        step: "1",
+        value,
+        onChange: (event) => onChange(Number(event.target.value)),
+      }),
+      React.createElement(
+        "div",
+        { className: "control-meta" },
+        React.createElement("span", null, "Responsive"),
+        React.createElement("span", null, `${profile.displayUpdateMs}ms refresh`),
+        React.createElement("span", null, "Stable"),
+      ),
+    );
+  }
+
   function App() {
     const [enabled, setEnabled] = useState(false);
     const [isEnabling, setIsEnabling] = useState(false);
     const [status, setStatus] = useState("Tap to enable");
     const [errors, setErrors] = useState([]);
+    const [noiseReduction, setNoiseReduction] = useState(DEFAULT_NOISE_REDUCTION);
     const [reading, setReading] = useState(initialReading);
     const watchIdRef = useRef(null);
     const listenersRef = useRef([]);
-    const smootherRef = useRef(new SensorSmoother(filterParams));
+    const smootherRef = useRef(
+      new SensorSmoother(
+        buildFilterParamsForNoiseReduction(filterParams, DEFAULT_NOISE_REDUCTION),
+      ),
+    );
+    const displayRef = useRef({
+      motion: 0,
+      orientation: 0,
+      eventCounts: {
+        motion: 0,
+        orientation: 0,
+      },
+      updateMs: getNoiseProfile(DEFAULT_NOISE_REDUCTION).displayUpdateMs,
+    });
+
+    const noiseProfile = useMemo(
+      () => getNoiseProfile(noiseReduction),
+      [noiseReduction],
+    );
 
     const addError = (message) => {
       setErrors((current) => [...current, message]);
@@ -321,6 +455,29 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./sensor-noise-reduction.js";
       });
     };
 
+    const shouldUpdateDisplay = (key, now) => {
+      if (now - displayRef.current[key] < displayRef.current.updateMs) {
+        return false;
+      }
+      displayRef.current[key] = now;
+      return true;
+    };
+
+    const updateNoiseReduction = (level) => {
+      const nextLevel = Math.min(100, Math.max(0, Number(level)));
+      const profile = getNoiseProfile(nextLevel);
+      const nextParams = buildFilterParamsForNoiseReduction(filterParams, nextLevel);
+
+      setNoiseReduction(nextLevel);
+      displayRef.current.updateMs = profile.displayUpdateMs;
+      smootherRef.current.setParams(nextParams);
+      setReading((current) => ({
+        ...current,
+        filter: buildNoiseReductionSettings(filterParams, nextLevel),
+        timestamp: new Date().toISOString(),
+      }));
+    };
+
     const startMotion = async () => {
       if (!("DeviceMotionEvent" in window)) {
         setPermission("motion", "unsupported");
@@ -332,16 +489,19 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./sensor-noise-reduction.js";
       if (permission !== "granted" && permission !== "not-required") return;
 
       listen(window, "devicemotion", (event) => {
+        displayRef.current.eventCounts.motion += 1;
+        const now = performance.now();
         const raw = motionRawFromEvent(event);
         const smoothed =
-          smootherRef.current.updateMotion(raw, performance.now()) ??
+          smootherRef.current.updateMotion(raw, now) ??
           smootherRef.current.getLastSmoothedMotion();
+        if (!shouldUpdateDisplay("motion", now)) return;
         const formattedSmoothed = formatSmoothedMotion(smoothed);
 
         updateReading((current) => ({
           ...current,
           motion: {
-            eventCount: current.motion.eventCount + 1,
+            eventCount: displayRef.current.eventCounts.motion,
             lastEventAt: new Date().toISOString(),
             raw,
             smoothed: formattedSmoothed ?? current.motion.smoothed,
@@ -371,16 +531,19 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./sensor-noise-reduction.js";
       if (permission !== "granted" && permission !== "not-required") return;
 
       const handleOrientation = (event) => {
+        displayRef.current.eventCounts.orientation += 1;
+        const now = performance.now();
         const raw = orientationRawFromEvent(event);
         const smoothed =
-          smootherRef.current.updateOrientation(raw, performance.now()) ??
+          smootherRef.current.updateOrientation(raw, now) ??
           smootherRef.current.getLastSmoothedOrientation();
+        if (!shouldUpdateDisplay("orientation", now)) return;
         const formattedSmoothed = formatSmoothedOrientation(smoothed);
 
         updateReading((current) => ({
           ...current,
           orientation: {
-            eventCount: current.orientation.eventCount + 1,
+            eventCount: displayRef.current.eventCounts.orientation,
             lastEventAt: new Date().toISOString(),
             raw,
             smoothed: formattedSmoothed ?? current.orientation.smoothed,
@@ -442,6 +605,10 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./sensor-noise-reduction.js";
       setStatus("Requesting access");
       setErrors([]);
       smootherRef.current.reset();
+      displayRef.current.motion = 0;
+      displayRef.current.orientation = 0;
+      displayRef.current.eventCounts.motion = 0;
+      displayRef.current.eventCounts.orientation = 0;
 
       listenersRef.current.forEach((remove) => remove());
       listenersRef.current = [];
@@ -602,6 +769,11 @@ import { DEFAULT_PARAMS, SensorSmoother } from "./sensor-noise-reduction.js";
             ),
           ),
         ),
+        React.createElement(NoiseControl, {
+          value: noiseReduction,
+          profile: noiseProfile,
+          onChange: updateNoiseReduction,
+        }),
         React.createElement(SensorTable, {
           title: "Acceleration m/s²",
           rows: tables.acceleration,
