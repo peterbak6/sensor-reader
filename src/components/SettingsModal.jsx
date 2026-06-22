@@ -5,22 +5,58 @@ import {
   getProcessingIntervalMs,
 } from "../lib/sensor-utils.js";
 
-function StatusDot({ value }) {
+function PermissionButton({ value, label, onClick, disabled = false }) {
+  const tone = getPermissionTone(value);
+  const isReady = tone === "good";
+  const buttonLabel = isReady ? "On" : "Enable";
+
   return (
-    <span
-      className={`status-dot ${getPermissionTone(value)}`}
-      title={value}
-      aria-label={value}
-    />
+    <button
+      className={`permission-enable-button ${tone}`}
+      type="button"
+      title={`${label}: ${value}`}
+      aria-label={`${buttonLabel} ${label}`}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {buttonLabel}
+    </button>
   );
 }
 
-function PermissionRow({ label, value }) {
+function PermissionRow({ label, value, onEnable, disabled }) {
   return (
     <div className="permission-row">
       <span>{label}:</span>
       <strong>{value}</strong>
-      <StatusDot value={value} />
+      <PermissionButton
+        value={value}
+        label={label}
+        onClick={onEnable}
+        disabled={disabled}
+      />
+    </div>
+  );
+}
+
+function WakeLockRow({ wakeLock, onToggle }) {
+  const value = wakeLock.status;
+  const buttonLabel = wakeLock.active ? "On" : "Enable";
+
+  return (
+    <div className="permission-row">
+      <span>Wake Lock:</span>
+      <strong>{value}</strong>
+      <button
+        className={`permission-enable-button ${getPermissionTone(value)}`}
+        type="button"
+        title={`Wake Lock: ${value}`}
+        aria-label={`${buttonLabel} Wake Lock`}
+        onClick={onToggle}
+        disabled={!wakeLock.supported}
+      >
+        {buttonLabel}
+      </button>
     </div>
   );
 }
@@ -76,6 +112,9 @@ export default function SettingsModal({
   onDisplayFpsChange,
   onDisplayDigitsChange,
   onProcessingModeChange,
+  onEnableMotion,
+  onEnableOrientation,
+  onEnableLocation,
   onToggleWakeLock,
   onClose,
 }) {
@@ -97,24 +136,26 @@ export default function SettingsModal({
         <p className="modal-status">{status}</p>
 
         <div className="permission-list">
-          <PermissionRow label="Motion" value={permissions.motion} />
-          <PermissionRow label="Orientation" value={permissions.orientation} />
-          <PermissionRow label="Location" value={permissions.geolocation} />
-          <PermissionRow label="Wake Lock" value={wakeLock.status} />
+          <PermissionRow
+            label="Motion"
+            value={permissions.motion}
+            onEnable={onEnableMotion}
+            disabled={permissions.motion === "unsupported"}
+          />
+          <PermissionRow
+            label="Orientation"
+            value={permissions.orientation}
+            onEnable={onEnableOrientation}
+            disabled={permissions.orientation === "unsupported"}
+          />
+          <PermissionRow
+            label="Location"
+            value={permissions.geolocation}
+            onEnable={onEnableLocation}
+            disabled={permissions.geolocation === "unsupported"}
+          />
+          <WakeLockRow wakeLock={wakeLock} onToggle={onToggleWakeLock} />
         </div>
-
-        <button
-          className={`wake-lock-button ${wakeLock.active ? "active" : ""}`}
-          type="button"
-          onClick={onToggleWakeLock}
-          disabled={!wakeLock.supported}
-        >
-          {wakeLock.supported
-            ? wakeLock.active
-              ? "Screen awake: On"
-              : "Keep screen awake"
-            : "Wake Lock unsupported"}
-        </button>
 
         <h2 className="settings-subtitle">Refresh</h2>
         <p className="refresh-label">

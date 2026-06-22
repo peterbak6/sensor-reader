@@ -48,6 +48,8 @@ export default function App() {
 
   const watchIdRef = useRef(null);
   const listenersRef = useRef([]);
+  const motionListeningRef = useRef(false);
+  const orientationListeningRef = useRef(false);
   const wakeLockRef = useRef(null);
   const wakeLockDesiredRef = useRef(false);
   const smootherRef = useRef(
@@ -157,6 +159,12 @@ export default function App() {
 
   function addError(message) {
     setErrors((current) => [...current, message]);
+  }
+
+  function clearErrorsFor(prefix) {
+    setErrors((current) =>
+      current.filter((message) => !message.startsWith(`${prefix}:`)),
+    );
   }
 
   function setPermission(key, value) {
@@ -341,6 +349,7 @@ export default function App() {
     const permission = await requestDevicePermission(window.DeviceMotionEvent);
     setPermission("motion", permission);
     if (permission !== "granted" && permission !== "not-required") return;
+    if (motionListeningRef.current) return;
 
     listen(window, "devicemotion", (event) => {
       displayRef.current.eventCounts.motion += 1;
@@ -368,6 +377,7 @@ export default function App() {
         },
       }));
     });
+    motionListeningRef.current = true;
   }
 
   async function startOrientation() {
@@ -382,6 +392,7 @@ export default function App() {
     );
     setPermission("orientation", permission);
     if (permission !== "granted" && permission !== "not-required") return;
+    if (orientationListeningRef.current) return;
 
     const handleOrientation = (event) => {
       displayRef.current.eventCounts.orientation += 1;
@@ -413,12 +424,18 @@ export default function App() {
 
     listen(window, "deviceorientation", handleOrientation);
     listen(window, "deviceorientationabsolute", handleOrientation);
+    orientationListeningRef.current = true;
   }
 
   function startLocation() {
     if (!("geolocation" in navigator)) {
       setPermission("geolocation", "unsupported");
       return;
+    }
+
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
     }
 
     setPermission("geolocation", "prompt");
@@ -447,6 +464,38 @@ export default function App() {
     );
   }
 
+  async function enableMotionOnly() {
+    clearErrorsFor("Motion");
+    setStatus("Requesting motion");
+    try {
+      await startMotion();
+      setStatus("Listening");
+    } catch (error) {
+      setPermission("motion", "error");
+      addError(`Motion: ${error.message}`);
+      setStatus("Motion error");
+    }
+  }
+
+  async function enableOrientationOnly() {
+    clearErrorsFor("Orientation");
+    setStatus("Requesting orientation");
+    try {
+      await startOrientation();
+      setStatus("Listening");
+    } catch (error) {
+      setPermission("orientation", "error");
+      addError(`Orientation: ${error.message}`);
+      setStatus("Orientation error");
+    }
+  }
+
+  function enableLocationOnly() {
+    clearErrorsFor("Geolocation");
+    setStatus("Requesting location");
+    startLocation();
+  }
+
   async function enableSensors() {
     setIsStarting(true);
     setStatus("Requesting access");
@@ -459,6 +508,8 @@ export default function App() {
 
     listenersRef.current.forEach((remove) => remove());
     listenersRef.current = [];
+    motionListeningRef.current = false;
+    orientationListeningRef.current = false;
     if (watchIdRef.current !== null) {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
@@ -541,6 +592,9 @@ export default function App() {
         onDisplayFpsChange={updateDisplayFps}
         onDisplayDigitsChange={updateDisplayDigits}
         onProcessingModeChange={updateProcessingMode}
+        onEnableMotion={enableMotionOnly}
+        onEnableOrientation={enableOrientationOnly}
+        onEnableLocation={enableLocationOnly}
         onToggleWakeLock={toggleWakeLock}
         onClose={() => setSettingsOpen(false)}
       />
