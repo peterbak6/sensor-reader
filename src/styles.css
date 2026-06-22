@@ -205,12 +205,43 @@ button {
   box-shadow: var(--shadow);
 }
 
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 34px;
+}
+
 .section-title {
   margin: 0;
   color: var(--text);
   font-size: 15px;
   font-weight: 650;
   letter-spacing: 0.2px;
+}
+
+.table-action-button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #07121f;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.24);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.table-action-button:active {
+  transform: scale(0.96);
+}
+
+.action-icon {
+  width: 21px;
+  height: 21px;
 }
 
 .sensor-table {
@@ -516,6 +547,250 @@ button {
   color: #ffd1ce;
   font-size: 12px;
   line-height: 1.35;
+}
+
+.instrument-screen {
+  width: min(100%, 760px);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: 0 max(14px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  background: #000;
+  color: #fff;
+}
+
+.instrument-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: calc(64px + env(safe-area-inset-top));
+  margin: 0 calc(-1 * max(14px, env(safe-area-inset-right))) 0 calc(-1 * max(14px, env(safe-area-inset-left)));
+  padding: calc(12px + env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 10px max(14px, env(safe-area-inset-left));
+  background: #000;
+}
+
+.instrument-header h1 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(1.25rem, 5.4vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.instrument-close-button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.instrument-body {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  min-height: calc(100svh - 78px - env(safe-area-inset-top));
+  padding: 48px 0 24px;
+}
+
+.instrument-value {
+  margin: 0 0 42px;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.compass-widget {
+  position: relative;
+  width: min(72vw, 320px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+
+.compass-dial {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 50%;
+  transition: transform 120ms linear;
+}
+
+.compass-tick {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  height: 10px;
+  color: rgba(255, 255, 255, 0.76);
+  background: transparent;
+  transform-origin: 0 0;
+}
+
+.compass-tick::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -142px;
+  width: 1px;
+  height: 10px;
+  background: currentColor;
+}
+
+.compass-tick.major::before {
+  height: 17px;
+  width: 2px;
+}
+
+.compass-degree,
+.cardinal {
+  position: absolute;
+  left: calc(50% - 18px);
+  top: calc(50% - 12px);
+  width: 36px;
+  height: 24px;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 18px;
+  line-height: 24px;
+  text-align: center;
+}
+
+.cardinal {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.cardinal.north {
+  transform: translateY(-84px);
+}
+
+.cardinal.east {
+  transform: translateX(84px);
+}
+
+.cardinal.south {
+  transform: translateY(84px);
+}
+
+.cardinal.west {
+  transform: translateX(-84px);
+}
+
+.compass-pointer {
+  position: absolute;
+  left: -8px;
+  top: calc(50% - 7px);
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-right: 12px solid #ff111b;
+}
+
+.compass-cross {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.compass-cross.vertical {
+  width: 1px;
+  height: 150px;
+}
+
+.compass-cross.horizontal {
+  width: 150px;
+  height: 1px;
+}
+
+.compass-center {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.13);
+}
+
+.level-body {
+  gap: 28px;
+  padding-top: 72px;
+}
+
+.level-readouts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  width: min(100%, 420px);
+  color: #fff;
+  font-size: clamp(15px, 4.6vw, 19px);
+  font-weight: 700;
+  text-align: center;
+}
+
+.level-widget {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(78vw, 360px);
+  aspect-ratio: 1;
+}
+
+.level-line {
+  position: absolute;
+  width: 1px;
+  height: 118%;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.level-line.diagonal-a {
+  transform: rotate(45deg);
+}
+
+.level-line.diagonal-b {
+  transform: rotate(-45deg);
+}
+
+.level-center-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.level-ball {
+  width: 72px;
+  height: 72px;
+  border: 1px solid rgba(255, 138, 134, 0.72);
+  border-radius: 50%;
+  background: rgba(255, 75, 68, 0.78);
+  box-shadow: 0 0 22px rgba(255, 75, 68, 0.2);
+  transition: transform 120ms linear, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.level-ball.partial {
+  border-color: rgba(242, 201, 76, 0.82);
+  background: rgba(217, 177, 56, 0.82);
+  box-shadow: 0 0 22px rgba(242, 201, 76, 0.22);
+}
+
+.level-ball.exact {
+  border-color: rgba(155, 227, 125, 0.86);
+  background: rgba(76, 190, 105, 0.84);
+  box-shadow: 0 0 24px rgba(155, 227, 125, 0.26);
+}
+
+.level-tilt {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
 }
 
 @media (min-width: 720px) {

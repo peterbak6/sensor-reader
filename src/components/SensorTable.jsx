@@ -1,10 +1,30 @@
 import React from "react";
 import { formatValue } from "../lib/sensor-utils.js";
 
-export default function SensorTable({ title, rows, digits }) {
+export default function SensorTable({
+  title,
+  rows,
+  digits,
+  actionLabel,
+  actionIcon,
+  onAction,
+}) {
   return (
     <section className="sensor-section">
-      <h2 className="section-title">{title}</h2>
+      <div className="section-header">
+        <h2 className="section-title">{title}</h2>
+        {onAction && (
+          <button
+            className="table-action-button"
+            type="button"
+            onClick={onAction}
+            aria-label={actionLabel}
+            title={actionLabel}
+          >
+            {actionIcon}
+          </button>
+        )}
+      </div>
       <div className="sensor-table" role="table" aria-label={title}>
         <div className="table-row table-head" role="row">
           <div role="columnheader">Signal</div>

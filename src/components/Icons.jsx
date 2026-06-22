@@ -37,3 +37,24 @@ export function MenuIcon() {
     </svg>
   );
 }
+
+export function CompassActionIcon() {
+  return (
+    <svg className="action-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M16.5 6.8 13.5 14 6.8 17.2 10.1 10.1 16.5 6.8Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+export function LevelActionIcon() {
+  return (
+    <svg className="action-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" fill="currentColor" />
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  );
+}

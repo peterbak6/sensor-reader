@@ -1,6 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DEFAULT_PARAMS, SensorSmoother } from "./lib/sensor-noise-reduction.js";
-import { MenuIcon, PinIcon } from "./components/Icons.jsx";
+import {
+  CompassActionIcon,
+  LevelActionIcon,
+  MenuIcon,
+  PinIcon,
+} from "./components/Icons.jsx";
+import { CompassView, LevelView } from "./components/InstrumentViews.jsx";
 import SettingsModal from "./components/SettingsModal.jsx";
 import SensorTable from "./components/SensorTable.jsx";
 import {
@@ -29,6 +35,7 @@ export default function App() {
   const [isStarting, setIsStarting] = useState(false);
   const [filterParams, setFilterParams] = useState(DEFAULT_PARAMS);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activeInstrument, setActiveInstrument] = useState(null);
   const [status, setStatus] = useState("Starting");
   const [errors, setErrors] = useState([]);
   const [noiseReduction, setNoiseReduction] = useState(DEFAULT_NOISE_REDUCTION);
@@ -564,6 +571,24 @@ export default function App() {
     );
   }
 
+  if (activeInstrument === "compass") {
+    return (
+      <CompassView
+        orientation={reading.orientation}
+        onClose={() => setActiveInstrument(null)}
+      />
+    );
+  }
+
+  if (activeInstrument === "level") {
+    return (
+      <LevelView
+        orientation={reading.orientation}
+        onClose={() => setActiveInstrument(null)}
+      />
+    );
+  }
+
   return (
     <main className="app">
       <header className="app-header">
@@ -646,11 +671,17 @@ export default function App() {
           title="Rotation Rate °/s"
           rows={tables.rotation}
           digits={displayDigits}
+          actionLabel="Open level"
+          actionIcon={<LevelActionIcon />}
+          onAction={() => setActiveInstrument("level")}
         />
         <SensorTable
           title="Orientation °"
           rows={tables.orientation}
           digits={displayDigits}
+          actionLabel="Open compass"
+          actionIcon={<CompassActionIcon />}
+          onAction={() => setActiveInstrument("compass")}
         />
 
         <details className="debug-details">
