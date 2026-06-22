@@ -54,6 +54,7 @@ export default function App() {
     initialReadingFor(DEFAULT_PARAMS, DEFAULT_NOISE_REDUCTION),
   );
 
+  const activeInstrumentRef = useRef(null);
   const watchIdRef = useRef(null);
   const listenersRef = useRef([]);
   const motionListeningRef = useRef(false);
@@ -76,6 +77,10 @@ export default function App() {
     () => getNoiseProfile(noiseReduction),
     [noiseReduction],
   );
+
+  useEffect(() => {
+    activeInstrumentRef.current = activeInstrument;
+  }, [activeInstrument]);
 
   const tables = useMemo(() => {
     const motion = reading.motion;
@@ -409,7 +414,18 @@ export default function App() {
       const smoothed =
         smootherRef.current.updateOrientation(raw, now) ??
         smootherRef.current.getLastSmoothedOrientation();
-      if (!shouldUpdateDisplay("orientation", now)) return;
+      const instrumentNeedsNativeOrientation =
+        activeInstrumentRef.current === "compass" ||
+        activeInstrumentRef.current === "level";
+      if (
+        !instrumentNeedsNativeOrientation &&
+        !shouldUpdateDisplay("orientation", now)
+      ) {
+        return;
+      }
+      if (instrumentNeedsNativeOrientation) {
+        displayRef.current.orientation = now;
+      }
 
       updateReading((current) => ({
         ...current,

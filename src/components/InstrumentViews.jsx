@@ -45,6 +45,21 @@ function displayHeading(orientation) {
   return normalizeDegrees(heading);
 }
 
+function shortestDegreeDelta(from, to) {
+  return ((((to - from) % 360) + 540) % 360) - 180;
+}
+
+function useContinuousHeading(heading) {
+  const continuousRef = useRef(heading ?? 0);
+
+  if (heading != null) {
+    const currentNormalized = normalizeDegrees(continuousRef.current) ?? 0;
+    continuousRef.current += shortestDegreeDelta(currentNormalized, heading);
+  }
+
+  return continuousRef.current;
+}
+
 function getLevelState(beta, gamma) {
   const threshold = 0.5;
   const betaLevel = typeof beta === "number" && Math.abs(beta) <= threshold;
@@ -123,6 +138,7 @@ function DegreeLabels() {
 
 export function CompassView({ orientation, onClose }) {
   const heading = displayHeading(orientation);
+  const continuousHeading = useContinuousHeading(heading);
   const label = heading == null ? "--" : `${Math.round(heading)}° ${cardinalFor(heading)}`;
 
   return (
@@ -141,7 +157,10 @@ export function CompassView({ orientation, onClose }) {
       <section className="instrument-body compass-body" aria-label="Compass">
         <p className="instrument-value">{label}</p>
         <div className="compass-widget">
-          <div className="compass-dial" style={{ transform: `rotate(${-heading || 0}deg)` }}>
+          <div
+            className="compass-dial"
+            style={{ transform: `rotate(${-continuousHeading}deg)` }}
+          >
             <TickMarks />
             <DegreeLabels />
             <span className="cardinal north">N</span>

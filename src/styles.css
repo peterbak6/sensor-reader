@@ -633,7 +633,7 @@ button {
   inset: 0;
   border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 50%;
-  transition: transform 120ms linear;
+  transition: transform 35ms linear;
 }
 
 .compass-tick {
@@ -776,7 +776,7 @@ button {
   border-radius: 50%;
   background: rgba(255, 75, 68, 0.78);
   box-shadow: 0 0 22px rgba(255, 75, 68, 0.2);
-  transition: transform 120ms linear, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  transition: transform 35ms linear, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .level-ball.partial {
