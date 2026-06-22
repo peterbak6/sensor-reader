@@ -11,8 +11,12 @@ const DARK_MAP_STYLE = {
     cartoLight: {
       type: "raster",
       tiles: [
-        "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+        "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
+        "https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
+        "https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
       ],
+      tileSize: 256,
+      attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
     },
   },
   layers: [
@@ -20,9 +24,6 @@ const DARK_MAP_STYLE = {
       id: "cartoDark",
       type: "raster",
       source: "cartoLight",
-      paint: {
-        "raster-opacity": 1,
-      },
     },
   ],
 };
@@ -227,6 +228,8 @@ export function MapView({ location, onClose }) {
         markerRef.current = new maplibregl.Marker({ color: "#e50914" })
           .setLngLat(lngLat)
           .addTo(mapRef.current);
+
+        requestAnimationFrame(() => mapRef.current?.resize());
       })
       .catch((error) => {
         if (!cancelled) setMapError(error.message);

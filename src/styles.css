@@ -816,18 +816,11 @@ button {
   position: relative;
   width: 100%;
   min-height: min(68svh, 560px);
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
-  background: #05080c;
+  background: #000;
 }
 
 .map-widget .maplibregl-canvas {
   outline: none;
-}
-
-.map-widget .maplibregl-marker svg {
-  filter: drop-shadow(0 5px 12px rgba(0, 0, 0, 0.5));
 }
 
 .map-error {
