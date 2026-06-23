@@ -129,7 +129,7 @@ export default function SettingsModal({
           onClick={onClose}
           aria-label="Close settings"
         >
-          X
+          ×
         </button>
 
         <h2>Settings</h2>

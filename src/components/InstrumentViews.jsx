@@ -151,7 +151,7 @@ export function CompassView({ orientation, onClose }) {
           onClick={onClose}
           aria-label="Close compass"
         >
-          X
+          ×
         </button>
       </header>
       <section className="instrument-body compass-body" aria-label="Compass">
@@ -195,7 +195,7 @@ export function LevelView({ orientation, onClose }) {
           onClick={onClose}
           aria-label="Close level"
         >
-          X
+          ×
         </button>
       </header>
       <section className="instrument-body level-body" aria-label="Level">
@@ -279,7 +279,7 @@ export function MapView({ location, onClose }) {
           onClick={onClose}
           aria-label="Close map"
         >
-          X
+          ×
         </button>
       </header>
       <section className="instrument-body map-body" aria-label="GPS map">

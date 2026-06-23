@@ -1,0 +1,18 @@
+# Sensor Reader
+
+URL: https://sensor-reader.pages.dev/
+
+Sensor Reader is a mobile-first browser sensor web app. It reads motion, orientation, compass, geolocation, and wake lock APIs, then displays raw and smoothed values plus focused compass, level, and map widgets.
+
+## Technical Summary
+
+- Frontend: React + Vite.
+- Hosting: Cloudflare Pages.
+- Sensor APIs: DeviceMotionEvent, DeviceOrientationEvent, Geolocation API, Screen Wake Lock API.
+- Processing: time-based EMA, circular EMA for heading/yaw, soft deadband, optional sample throttling, display throttling.
+- Widgets: compass, level, MapLibre GPS map.
+
+## Entry Points
+
+- App: https://sensor-reader.pages.dev/
+- AI summary: https://sensor-reader.pages.dev/llms.txt

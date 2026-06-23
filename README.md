@@ -2,6 +2,10 @@
 
 Mobile-first React/Vite app for reading browser sensor APIs, smoothing noisy values, and displaying raw/smoothed data plus focused instrument widgets.
 
+Live app: https://sensor-reader.pages.dev/
+
+AI summary: https://sensor-reader.pages.dev/llms.txt
+
 ## 1. Install
 
 ```bash
